@@ -1,0 +1,25 @@
+{
+  "required": true,
+  "package": "com.dreu.traversableleaves.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "minVersion": "0.8",
+  "refmap": "traversable_leaves-refmap.json",
+  "mixins": [
+    "BlockCollisionsMixin",
+    "BlockMixin",
+    "BlockStateBaseMixin",
+    "EntityMixin",
+    "EvokerMixin",
+    "LivingEntityMixin",
+    "MoveControlMixin",
+    "WalkNodeEvaluatorMixin",
+    "PistonMovingBlockEntityMixin",
+    "PlayerListServerMixin"
+  ],
+  "client": [
+    "PlayerListClientMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

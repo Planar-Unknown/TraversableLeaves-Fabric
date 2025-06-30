@@ -10,8 +10,7 @@ base {
 	archivesName = project.archives_base_name
 }
 
-repositories {
-}
+repositories {}
 
 dependencies {
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
@@ -55,6 +54,5 @@ publishing {
 		}
 	}
 
-	repositories {
-	}
+	repositories {}
 }

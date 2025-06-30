@@ -71,14 +71,14 @@ public class EntityMixin {
 
   private void createAmbience(Entity entity, BlockPos blockPos, BlockState blockState){
     if (!entity.position().equals(new Vec3(entity.xOld, entity.yOld, entity.zOld))) {
-      if (entity.level().getGameTime() % 15 == 1) {
+      if (entity.level.getGameTime() % 15 == 1) {
         entity.playSound(blockState.getSoundType().getStepSound(), 0.1f, 0.6f);
       }
-      if (entity.level().getGameTime() % 4 == 1){
-        double d0 = (double) blockPos.getX() + entity.level().random.nextDouble();
+      if (entity.level.getGameTime() % 4 == 1){
+        double d0 = (double) blockPos.getX() + entity.level.random.nextDouble();
         double d1 = (double) blockPos.getY() + 1;
-        double d2 = (double) blockPos.getZ() + entity.level().random.nextDouble();
-        entity.level().addParticle(new BlockParticleOption(ParticleTypes.BLOCK, blockState), d0, d1, d2, 0, 0, 0);
+        double d2 = (double) blockPos.getZ() + entity.level.random.nextDouble();
+        entity.level.addParticle(new BlockParticleOption(ParticleTypes.BLOCK, blockState), d0, d1, d2, 0, 0, 0);
       }
     }
   }

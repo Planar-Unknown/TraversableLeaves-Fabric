@@ -1,6 +1,6 @@
 package com.dreu.traversableleaves.interfaces;
 
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.Registry;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -10,7 +10,7 @@ import static com.dreu.traversableleaves.config.TLConfig.*;
 public interface ITraversableEntity {
 
   static boolean canTraverse(Entity entity) {
-    return IS_ENTITIES_WHITELIST == TL_ENTITIES.contains(BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()));
+    return IS_ENTITIES_WHITELIST == TL_ENTITIES.contains(Registry.ENTITY_TYPE.getKey(entity.getType()));
   }
 
   default float getArmorBonus() {

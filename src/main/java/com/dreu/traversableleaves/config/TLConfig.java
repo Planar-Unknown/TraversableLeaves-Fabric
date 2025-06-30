@@ -5,8 +5,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.Holder;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.core.registries.Registries;
+import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EntityType;
@@ -20,6 +19,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -155,16 +155,16 @@ public class TLConfig {
       if (configKey.startsWith("-")) {
         if (configKey.charAt(1) == '#') {
           if (isValidBlockTag(configKey.substring(2))) {
-            for (Holder<Block> block : BuiltInRegistries.BLOCK.getTag(TagKey.create(BuiltInRegistries.BLOCK.key(), new ResourceLocation(configKey.substring(2)))).get().stream().toList())
-              toRemove.add(BuiltInRegistries.BLOCK.getKey(block.value()));
+            for (Holder<Block> block : Registry.BLOCK.getTag(TagKey.create(Registry.BLOCK.key(), new ResourceLocation(configKey.substring(2)))).get().stream().toList())
+              toRemove.add(Registry.BLOCK.getKey(block.value()));
           }
         } else if (isValidBlock(configKey.substring(1))) {
           toRemove.add(new ResourceLocation(configKey.substring(1)));
         }
       } else if (configKey.startsWith("#")) {
         if (isValidBlockTag(configKey.substring(1))) {
-          for (Holder<Block> block : BuiltInRegistries.BLOCK.getTag(TagKey.create(Registries.BLOCK, new ResourceLocation(configKey.substring(1)))).get())
-            TL_BLOCKS.add(BuiltInRegistries.BLOCK.getKey(block.value()));
+          for (Holder<Block> block : Registry.BLOCK.getTag(TagKey.create(Registry.BLOCK.key(), new ResourceLocation(configKey.substring(1)))).get())
+            TL_BLOCKS.add(Registry.BLOCK.getKey(block.value()));
         }
       } else if (isValidBlock(configKey)) {
         TL_BLOCKS.add(new ResourceLocation(configKey));
@@ -178,16 +178,16 @@ public class TLConfig {
       if (configKey.startsWith("-")) {
         if (configKey.charAt(1) == '#') {
           if (isValidEntityTag(configKey.substring(2))) {
-            for (Holder<EntityType<?>> entityType : BuiltInRegistries.ENTITY_TYPE.getTag(TagKey.create(Registries.ENTITY_TYPE, new ResourceLocation(configKey.substring(2)))).get())
-              toRemove.add(BuiltInRegistries.ENTITY_TYPE.getKey(entityType.value()));
+            for (Holder<EntityType<?>> entityType : Registry.ENTITY_TYPE.getTag(TagKey.create(Registry.ENTITY_TYPE.key(), new ResourceLocation(configKey.substring(2)))).get())
+              toRemove.add(Registry.ENTITY_TYPE.getKey(entityType.value()));
           }
         } else if (isValidEntity(configKey.substring(1))) {
           toRemove.add(new ResourceLocation(configKey.substring(1)));
         }
       } else if (configKey.startsWith("#")) {
         if (isValidEntityTag(configKey.substring(1))) {
-          for (Holder<EntityType<?>> entityType : BuiltInRegistries.ENTITY_TYPE.getTag(TagKey.create(Registries.ENTITY_TYPE, new ResourceLocation(configKey.substring(1)))).get())
-            TL_ENTITIES.add(BuiltInRegistries.ENTITY_TYPE.getKey(entityType.value()));
+          for (Holder<EntityType<?>> entityType : Registry.ENTITY_TYPE.getTag(TagKey.create(Registry.ENTITY_TYPE.key(), new ResourceLocation(configKey.substring(1)))).get())
+            TL_ENTITIES.add(Registry.ENTITY_TYPE.getKey(entityType.value()));
         }
       } else if (isValidEntity(configKey)) {
         TL_ENTITIES.add(new ResourceLocation(configKey));
@@ -200,13 +200,17 @@ public class TLConfig {
 
   private static List<String> getStringListOrDefault(String key) {
     JsonElement jsonElement = CONFIG.get(key);
-    if (jsonElement.isJsonArray())
-      return CONFIG.get(key).getAsJsonArray().asList().stream().map(JsonElement::getAsString).toList();
+    List<String> list = new ArrayList<>();
+    if (jsonElement.isJsonArray()) {
+      CONFIG.getAsJsonArray(key).iterator().forEachRemaining(element -> list.add(element.getAsString()));
+      return list;
+    }
     else {
       LOGGER.warn("Invalid value for \"{}\" in Config: {{}} | Expected: [List], but got: [{}] | Using default...", key, fileName, CONFIG.get(key).getClass().getTypeName());
       configNeedsRepair = true;
     }
-    return DEFAULT_CONFIG.getAsJsonArray(key).asList().stream().map(JsonElement::getAsString).toList();
+    DEFAULT_CONFIG.getAsJsonArray(key).iterator().forEachRemaining(element -> list.add(element.getAsString()));
+    return list;
   }
 
   private static boolean getWhitelistBlacklist() {
@@ -248,7 +252,7 @@ public class TLConfig {
       LOGGER.warn("Not a valid Entity Tag ResourceLocation: <{}> declared in Config: [{}] | Skipping Tag...", tagId, fileName);
       return false;
     }
-    if (BuiltInRegistries.ENTITY_TYPE.getTag(TagKey.create(Registries.ENTITY_TYPE, new ResourceLocation(tagId))).isEmpty()) {
+    if (Registry.ENTITY_TYPE.getTag(TagKey.create(Registry.ENTITY_TYPE.key(), new ResourceLocation(tagId))).isEmpty()) {
       LOGGER.warn("Not an existing Entity Tag: <{}> declared in Config: [{}] | Skipping Tag...", tagId, fileName);
       return false;
     }
@@ -264,7 +268,7 @@ public class TLConfig {
       LOGGER.warn("Config: [{}] declared Entity: <{}> but Mod: '{{}}' is not loaded | Skipping Block...", fileName, entityId, entityId.split(":")[0]);
       return false;
     }
-    if (!BuiltInRegistries.ENTITY_TYPE.containsKey(new ResourceLocation(entityId))) {
+    if (!Registry.ENTITY_TYPE.containsKey(new ResourceLocation(entityId))) {
       LOGGER.warn("Config: [{}] declared Entity: <{}> which does not exist, check for typos! | Skipping Block...", fileName, entityId);
       return false;
     }
@@ -276,7 +280,7 @@ public class TLConfig {
       LOGGER.warn("Not a valid Block Tag ResourceLocation: <{}> declared in Config: [{}] | Skipping Tag...", tagId, fileName);
       return false;
     }
-    if (BuiltInRegistries.BLOCK.getTag(TagKey.create(Registries.BLOCK, new ResourceLocation(tagId))).isEmpty()) {
+    if (Registry.BLOCK.getTag(TagKey.create(Registry.BLOCK.key(), new ResourceLocation(tagId))).isEmpty()) {
       LOGGER.warn("Not an existing Block Tag: <{}> declared in Config: [{}] | Skipping Tag...", tagId, fileName);
       return false;
     }
@@ -292,7 +296,7 @@ public class TLConfig {
       LOGGER.warn("Config: [{}] declared Block: <{}> but Mod: '{{}}' is not loaded | Skipping Block...", fileName, blockId, blockId.split(":")[0]);
       return false;
     }
-    if (!BuiltInRegistries.BLOCK.containsKey(new ResourceLocation(blockId))) {
+    if (!Registry.BLOCK.containsKey(new ResourceLocation(blockId))) {
       LOGGER.warn("Config: [{}] declared Block: <{}> which does not exist, check for typos! | Skipping Block...", fileName, blockId);
       return false;
     }
@@ -351,8 +355,7 @@ public class TLConfig {
   static JsonObject parseConfigOrDefault() {
     try {
       Files.createDirectories(Path.of("config/" + MODID));
-    } catch (Exception ignored) {
-    }
+    } catch (Exception ignored) {}
 
     Path path = Path.of(fileName).toAbsolutePath();
     if (Files.exists(path)) {
@@ -367,8 +370,7 @@ public class TLConfig {
       LOGGER.info("No config found at: {} | Generating new one...", fileName);
       try (FileWriter fileWriter = new FileWriter(path.toFile())) {
         fileWriter.write(DEFAULT_CONFIG_STRING);
-      } catch (Exception ignored) {
-      }
+      } catch (Exception ignored) {}
       return DEFAULT_CONFIG;
     }
   }
